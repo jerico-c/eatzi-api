@@ -15,7 +15,7 @@ const pool = new Pool({
 
 // 1. DEFINISIKAN allowedOrigins DI SINI
 // Ambil daftar origin dari environment variable, pisahkan dengan koma
-const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:5173').split(',');
+const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:8080','https://meek-cranachan-019fc9.netlify.app/').split(',');
 
 const init = async () => {
     // Buat instance server
