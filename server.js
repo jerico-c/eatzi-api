@@ -15,7 +15,7 @@ const pool = new Pool({
     }
 });
 
-const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:8080').split(',');
+const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:8080','https://eatzi.netlify.app').split(',');
 
 const init = async () => {
     const server = Hapi.server({
