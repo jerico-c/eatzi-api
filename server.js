@@ -18,7 +18,7 @@ const init = async () => {
         host: 'localhost',
         routes: {
             cors: { // Mengizinkan akses dari frontend React
-                origin: ['*'], // Ganti dengan URL frontend Anda saat deploy
+                origin: ['https://meek-cranachan-019fc9.netlify.app/'], // Ganti dengan URL frontend Anda saat deploy
             },
         },
     });
