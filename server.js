@@ -9,21 +9,29 @@ const { Pool } = require('pg');
 // Konfigurasi koneksi database
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    // Jika menggunakan Supabase atau layanan cloud lain, tambahkan SSL
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
+
+// 1. DEFINISIKAN allowedOrigins DI SINI
+// Ambil daftar origin dari environment variable, pisahkan dengan koma
+const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:5173').split(',');
 
 const init = async () => {
     // Buat instance server
     const server = Hapi.server({
         port: process.env.PORT || 4000,
-        host: 'localhost',
+        // 2. UBAH host MENJADI '0.0.0.0'
+        host: '0.0.0.0',
         routes: {
-            cors: { // Mengizinkan akses dari frontend React
-                origin: allowedOrigins, // Ganti dengan URL frontend Anda saat deploy
+            cors: {
+                // 3. Pastikan origin menggunakan variabel yang sudah didefinisikan
+                origin: allowedOrigins,
             },
         },
     });
 
-    // Definisikan Routes (URL API)
+    // Definisikan Routes (URL API) - (Bagian ini tidak perlu diubah)
     server.route([
         {
             method: 'GET',
