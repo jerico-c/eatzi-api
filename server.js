@@ -1,27 +1,23 @@
 'use strict';
 require('dns').setDefaultResultOrder('ipv4first');
+
 // Impor library
 require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const Joi = require('joi');
 const { Pool } = require('pg');
 
-// --- PERBAIKAN DI SINI ---
 // Konfigurasi koneksi database dengan opsi SSL
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    // Baris ini penting untuk koneksi ke database di cloud (Railway, Supabase, dll.)
     ssl: {
         rejectUnauthorized: false
     }
 });
-// --- AKHIR PERBAIKAN ---
 
-// Ambil daftar URL yang diizinkan dari environment variable
-const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:8080','https://eatzi.netlify.app').split(',');
+const allowedOrigins = (process.env.CORS_ORIGIN_FRONTEND || 'http://localhost:8080').split(',');
 
 const init = async () => {
-    // Buat instance server
     const server = Hapi.server({
         port: process.env.PORT || 4000,
         host: '0.0.0.0', 
@@ -32,7 +28,6 @@ const init = async () => {
         },
     });
 
-    // Definisikan Routes (URL API)
     server.route([
         {
             method: 'GET',
@@ -47,7 +42,6 @@ const init = async () => {
                 }
             }
         },
-        // ... Rute POST, PUT, DELETE tetap sama ...
         {
             method: 'POST',
             path: '/testimonials',
@@ -73,6 +67,59 @@ const init = async () => {
                 }
             }
         },
+        
+        {
+            method: 'PUT',
+            path: '/testimonials/{id}',
+            handler: async (request, h) => {
+                try {
+                    const { id } = request.params;
+                    const { name, story } = request.payload;
+                    const { rows } = await pool.query(
+                        'UPDATE testimonials SET name = $1, story = $2 WHERE id = $3 RETURNING *',
+                        [name, story, id]
+                    );
+                    if (rows.length === 0) {
+                        return h.response({ message: 'Not Found' }).code(404);
+                    }
+                    return h.response(rows[0]);
+                } catch (err) {
+                    console.error('Database update error:', err);
+                    return h.response({ message: 'Internal Server Error' }).code(500);
+                }
+            },
+            options: {
+                validate: {
+                    params: Joi.object({ id: Joi.number().integer().required() }),
+                    payload: Joi.object({
+                        name: Joi.string().min(3).max(100).required(),
+                        story: Joi.string().min(10).required(),
+                    })
+                }
+            }
+        },
+        {
+            method: 'DELETE',
+            path: '/testimonials/{id}',
+            handler: async (request, h) => {
+                try {
+                    const { id } = request.params;
+                    const result = await pool.query('DELETE FROM testimonials WHERE id = $1', [id]);
+                    if (result.rowCount === 0) {
+                        return h.response({ message: 'Not Found' }).code(404);
+                    }
+                    return h.response({ message: 'Testimonial deleted successfully' }).code(200);
+                } catch (err) {
+                    console.error('Database delete error:', err);
+                    return h.response({ message: 'Internal Server Error' }).code(500);
+                }
+            },
+            options: {
+                validate: {
+                    params: Joi.object({ id: Joi.number().integer().required() })
+                }
+            }
+        }
     ]);
 
     await server.start();
