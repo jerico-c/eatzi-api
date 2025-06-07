@@ -1,5 +1,5 @@
 'use strict';
-
+require('dns').setDefaultResultOrder('ipv4first');
 // Impor library
 require('dotenv').config();
 const Hapi = require('@hapi/hapi');
